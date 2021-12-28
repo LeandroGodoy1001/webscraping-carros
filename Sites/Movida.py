@@ -32,7 +32,7 @@ class Movida:
         options = Options()
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        self.dataframe = pd.DataFrame(columns=['Nome', 'Km', 'URL', '12 Meses', '18 Meses', '24 Meses', '30 Meses', '36 Meses', 'Desc 12 Meses', 'Desc 18 Meses', 'Desc 24 Meses', 'Desc 30 Meses', 'Desc 36 Meses'])
+        self.dataframe = pd.DataFrame(columns=['Nome', 'Km', 'URL', '12 Meses', '18 Meses', '24 Meses', '30 Meses', '36 Meses', 'Descricao 12 Meses', 'Descricao 18 Meses', 'Descricao 24 Meses', 'Descricao 30 Meses', 'Descricao 36 Meses'])
         self.navegador = selenium.webdriver.Chrome(service=Service('chromedriver.exe'), options=options)
         self.navegador.maximize_window()  # Maximizando a janela do navegador, para evitar probemas de visualização.
 
@@ -101,7 +101,7 @@ class Movida:
     def get_data(self):
         """Realiza a coleta dos dados nas paginas dos carros."""
         self.pagina_inicial()
-        sleep(10)
+        sleep(15)
 
         self.fechar_chat()
 

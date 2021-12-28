@@ -2,7 +2,7 @@
 Projeto desenvolvido para coletar dados de nome do carro, kilometragem, período de contrato, preço, descrição de pagamento, e data da coleta dos dados.
 
 ## Download
-Você pode baixar a fonte como um arquivo ZIP e extrair o conteúdo ou clonar o repositório usando Git.
+Você pode baixar o repositório como um arquivo ZIP e extrair o conteúdo ou clonar o repositório usando Git.
 ### Baixando como arquivo ZIP
 
 1. Clique no botão Código
@@ -25,7 +25,7 @@ Este código foi desenvolvido com Python 3.10.1.
 2. Navegue até a pasta onde os arquivos do repositório estão localizados
 3. Requisitos de instalação
     ```console
-    pip -r install requiriments.txt
+    pip install -r requeriments.txt
     ```
 
 ### ChromeDriver

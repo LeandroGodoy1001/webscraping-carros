@@ -25,7 +25,7 @@ Este código foi desenvolvido com Python 3.10.1.
 2. Navegue até a pasta onde os arquivos do repositório estão localizados
 3. Requisitos de instalação
     ```console
-    pip -r install requeriments.txt
+    pip install -r requeriments.txt
     ```
 
 ### ChromeDriver

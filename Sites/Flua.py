@@ -29,7 +29,7 @@ class Flua:
         options = Options()
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        self.dataframe = pd.DataFrame(columns=['Nome', 'Km', 'URL', '12 Meses', '24 Meses', '36 Meses'])
+        self.dataframe = pd.DataFrame(columns=['Nome', 'Km', 'URL', 'Data', '12 Meses', '24 Meses', '36 Meses'])
         self.navegador = selenium.webdriver.Chrome(service=Service('chromedriver.exe'), options=options)
 
         print('Iniciando coleta em Flua')

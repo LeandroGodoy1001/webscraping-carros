@@ -95,6 +95,7 @@ class Movida:
             chat.click()
             self.navegador.switch_to.default_content()  # Voltando para o frame principal.
         except:
+            self.navegador.switch_to.default_content()  # Voltando para o frame principal.
             pass
 
 

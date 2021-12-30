@@ -32,7 +32,7 @@ class Movida:
         options = Options()
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        self.dataframe = pd.DataFrame(columns=['Nome', 'Km', 'URL', '12 Meses', '18 Meses', '24 Meses', '30 Meses', '36 Meses', 'Descricao 12 Meses', 'Descricao 18 Meses', 'Descricao 24 Meses', 'Descricao 30 Meses', 'Descricao 36 Meses'])
+        self.dataframe = pd.DataFrame(columns=['Nome', 'Data', 'Locadora', 'Km', 'Meses', 'Valor', 'Descricao'])
         self.navegador = selenium.webdriver.Chrome(service=Service('chromedriver.exe'), options=options)
         self.navegador.maximize_window()  # Maximizando a janela do navegador, para evitar probemas de visualização.
 
@@ -66,8 +66,12 @@ class Movida:
         try:
             opcoes_meses.click()
         except:
-            self.navegador.find_element(By.XPATH, '//button[contains(text(), "OK")]').click()
-            opcoes_meses.click()
+            try:
+                self.navegador.execute_script('window.scrollBy(0, -200)')
+                opcoes_meses.click()
+            except:
+                self.navegador.find_element(By.XPATH, '//button[contains(text(), "OK")]').click()
+                opcoes_meses.click()
         meses = self.navegador.find_elements(By.XPATH, '//*[@role="option"]')
         return meses
 
@@ -82,8 +86,12 @@ class Movida:
         try:
             opcoes_km.click()
         except:
-            self.navegador.find_element(By.XPATH, '//button[contains(text(), "OK")]').click()
-            opcoes_km.click()
+            try:
+                self.navegador.execute_script('window.scrollBy(0, -200)')
+                opcoes_km.click()
+            except:
+                self.navegador.find_element(By.XPATH, '//button[contains(text(), "OK")]').click()
+                opcoes_km.click()
         kms = self.navegador.find_elements(By.XPATH, '//*[@role="option"]')
         return kms
 
@@ -113,7 +121,7 @@ class Movida:
 
         print('Coletando dados')
         for i in range(len(carros)):
-            dados_carro = {'Nome':np.nan, 'Km':np.nan, 'URL':np.nan, 'Data':np.nan}
+            dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Movida Zero Km', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
             self.fechar_chat()
             try:
                 # Descendo na página principal para acessar o proximo carro.
@@ -133,24 +141,22 @@ class Movida:
             sleep(8)
 
             dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//h1[@class="title-car-detail"]').text
-            dados_carro['URL'] = self.navegador.current_url
 
             # Descendo na página para evitar problemas de não conseguir acessar o objetivo por estar fora da tela ou com algo na frente.
             self.navegador.execute_script('window.scrollBy(0, 1000)')
             sleep(2)
 
-            meses = self.load_meses()  # Abrindo lista de opções de Km.
+            meses = self.load_meses()  # Abrindo lista de opções de meses.
 
             for mes in meses:
-                dados_carro['Mes'] = mes.text.split(' ')[0]+' Meses'
+                dados_carro['Meses'] = int(mes.text.replace('meses', ''))
                 mes.click()    # Selecionando opção de km.
                 sleep(1)
                 kms = self.load_kms()  # Abrindo lista de opções de Km e salvandoa-as.
-                kms[0].click()
 
                 for km in kms:
-                    self.load_kms()  # Abrindo lista de opções de Km.
-                    dados_carro['Km'] = km.text.replace(' Km', '')
+                    print(km.text)
+                    dados_carro['Km'] = int(km.text.replace(' Km', '').replace('.', ''))
                     km.click()  # Selecionando opção de km.
                     sleep(2)
 
@@ -171,15 +177,17 @@ class Movida:
                         # Caso não consiga coletar, o valor será NaN.
                         desc = np.nan
 
-                    # Salvando data da coleta e todos os outros dados.
+                    # Salvando dados que ainda não foram salvos.
+                    dados_carro['Valor'] = numeros
+                    dados_carro['Descricao'] = desc
                     dados_carro['Data'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-                    # Caso o carro ja esteja no dataframe, somente será salvo os dados que não foram coletados.
-                    if not self.dataframe.loc[(self.dataframe['Nome'] == dados_carro['Nome']) & (self.dataframe['Km'] == dados_carro['Km'])].empty:
-                        self.dataframe.loc[(self.dataframe['Nome'] == dados_carro['Nome']) & (self.dataframe['Km'] == dados_carro['Km']), dados_carro['Mes']] = numeros
-                        self.dataframe.loc[(self.dataframe['Nome'] == dados_carro['Nome']) & (self.dataframe['Km'] == dados_carro['Km']), 'Desc '+dados_carro['Mes']] = desc
-                    else:
-                        self.dataframe.loc[len(self.dataframe)] = {'Nome':dados_carro['Nome'], 'URL':dados_carro['URL'], 'Data':dados_carro['Data'],'Km':dados_carro['Km'], dados_carro['Mes']:numeros, 'Desc '+dados_carro['Mes']:desc}
 
+                    # Guardando no dataframe.
+                    self.dataframe.loc[len(self.dataframe)] = dados_carro
+                    print(self.dataframe)
+                    self.load_kms()  # Abrindo lista de opções de Km.
+
+                kms[0].click()
                 self.load_meses()  # Abrindo lista de opções de períodos.
 
             # Voltando para a página inicial.
@@ -196,6 +204,5 @@ class Movida:
         print('Exportando dados')
         self.dataframe.to_csv('dados_movida.csv', index=False)
 
-
 if __name__ == '__main__':
-    movida = Movida()
+    Movida()

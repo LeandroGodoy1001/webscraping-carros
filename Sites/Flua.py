@@ -29,7 +29,7 @@ class Flua:
         options = Options()
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        self.dataframe = pd.DataFrame(columns=['Nome', 'Km', 'URL', 'Data', '12 Meses', '24 Meses', '36 Meses'])
+        self.dataframe = pd.DataFrame(columns=['Nome', 'Data', 'Locadora', 'Km', 'Meses', 'Valor', 'Descricao'])
         self.navegador = selenium.webdriver.Chrome(service=Service('chromedriver.exe'), options=options)
 
         print('Iniciando coleta em Flua')
@@ -77,16 +77,16 @@ class Flua:
                 # Procurando botão para voltar para a página anterior.
                 bnt_voltar =  self.navegador.find_element(By.XPATH, '//*[contains(text(), "Voltar")]')
 
-                dados_carro = {'Nome':np.nan, 'URL':np.nan, 'Data':np.nan}
+                dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Flua', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
 
                 dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//div[@class="offer-header no-label"]/h3').text
-                dados_carro['URL'] = self.navegador.current_url
 
                 # Pegando opçoes de periodo
                 meses = self.navegador.find_elements(By.CLASS_NAME, 'monthly-plans__item')
                 for mes in meses:
                     mes.click()
                     sleep(1)
+                    dados_carro['Meses'] = int(mes.text.split('\n')[0])
 
                     # Pegando slider de seleção de Km
                     slider = self.navegador.find_element(By.XPATH, '//input[@type="range"]')
@@ -97,16 +97,16 @@ class Flua:
                         slider.send_keys(Keys.LEFT)
 
                     for km in kms.text.split('\n'):
+                        dados_carro['Km'] = int(km.replace(' Km', ''))
+
                         # Formatando preço para se tornar um numero to tipo float.
                         preco = self.navegador.find_element(By.XPATH, '//div[@class="offer-info__price"]/h3').text
                         numeros = float(preco.replace('R$', '').replace('.', '').replace(',', '.'))
+                        dados_carro['Valor'] = numeros
 
                         # Salvando data da coleta e todos os outros dados.
                         dados_carro['Data'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-                        if not self.dataframe.loc[(self.dataframe['Nome'] == dados_carro['Nome']) & (self.dataframe['Km'] == km.replace(' Km', ''))].empty:
-                            self.dataframe.loc[(self.dataframe['Nome'] == dados_carro['Nome']) & (self.dataframe['Km'] == km.replace(' Km', '')), mes.text.split('\n')[0]+' Meses'] = numeros
-                        else:
-                            self.dataframe.loc[len(self.dataframe)] = {'Nome':dados_carro['Nome'], 'URL':dados_carro['URL'], 'Data':dados_carro['Data'], 'Km':km.replace(' Km', ''), mes.text.split('\n')[0]+' Meses':numeros}
+                        self.dataframe.loc[len(self.dataframe)] = dados_carro
 
                         # Deslizando slider para a proxima posição.
                         slider.send_keys(Keys.RIGHT)

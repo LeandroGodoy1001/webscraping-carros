@@ -27,7 +27,7 @@ class Porto:
         options = Options()
         options.add_experimental_option('excludeSwitches', ['enable-logging'])  # Opção para ignorar erros de conexão com dispositivos.
 
-        self.dataframe = pd.DataFrame(columns=['Nome', 'Km', 'URL', 'Data'])
+        self.dataframe = pd.DataFrame(columns=['Nome', 'Data', 'Locadora', 'Km', 'Meses', 'Valor', 'Descricao'])
         self.navegador = selenium.webdriver.Chrome(service=Service('chromedriver.exe'), options=options)
 
         print('Iniciando coleta em Porto Seguro')
@@ -70,24 +70,26 @@ class Porto:
 
         print('Coletando dados...')
         for carro in carros:
-            dados_carro = {'Nome':np.nan, 'Km':np.nan, 'URL':np.nan,'Mes':[], 'Valor':[], 'Data':np.nan}
+            dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Porto Seguro', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
             self.navegador.get(carro)  # Acessando carro.
             sleep(2)
+            dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '/html/body/div[1]/main/div/section[1]/div/div[3]/div[2]/div[2]/p').text
 
             # Lendo opções de periodo, elas são do tipo lista de seleção 
             # então já estão sendo salvas nesse formato, pois o Selenium da suporte para isso.
             meses = Select(self.navegador.find_element(By.XPATH, f'//*[@name="periods"]'))
 
-            dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//h1[@class="styles__Model-sc-42cvqa-8 bgjONp"]').text
-            dados_carro['URL'] = carro
+            for mes in meses.options[1:]:
+                meses.select_by_visible_text(mes.text)  # Selecioando opção da lista de periodos.
+                sleep(.5)
+                dados_carro['Meses'] = int(mes.text.replace(' meses', ''))
 
-            for km in range(1,5):
-                for mes in meses.options[1:]:
-                    meses.select_by_visible_text(mes.text)  # Selecioando opção da lista de periodos.
-                    sleep(.5)
+                # Lendo opções de periodo, elas são do tipo lista de seleção 
+                # então já estão sendo salvas nesse formato, pois o Selenium da suporte para isso
+                kms = Select(self.navegador.find_element(By.XPATH, f'//*[@name="bundles"]'))
 
-                    kms = Select(self.navegador.find_element(By.XPATH, f'//*[@name="bundles"]'))
-                    kms.select_by_visible_text(kms.options[km].text)  # Selecioando opção da lista de Km.
+                for km in kms.options[1:]:
+                    kms.select_by_visible_text(km.text)  # Selecioando opção da lista de Km.
                     sleep(.5)
 
                     # Formatando preço para se tornar um numero to tipo float.
@@ -96,14 +98,14 @@ class Porto:
                     valor = float(numeros.replace('.', '').replace(',', '.'))
 
                     # Salvando data da coleta e todos os outros dados.
-                    dados_carro['Km'] = kms.options[km].text
-                    dados_carro['Mes'].append(mes.text.replace('m', 'M'))
-                    dados_carro['Valor'].append(valor)
+                    km_site = km.text.split(' ')[0]
+                    km_real = int(km_site)/dados_carro['Meses']
+                    dados_carro['Km'] = km_real
+
+                    dados_carro['Valor'] = valor
                     dados_carro['Data'] = datetime.now().strftime('%d/%m/%Y %H:%M')
 
-                self.dataframe.loc[len(self.dataframe)] = dados_carro
-                for m, v in zip(dados_carro['Mes'], dados_carro['Valor']):
-                    self.dataframe[m] = v
+                    self.dataframe.loc[len(self.dataframe)] = dados_carro
 
         print(f'Coleta do site {self.url} finalizada')
         self.navegador.close()

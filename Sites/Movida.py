@@ -5,11 +5,10 @@ import pandas as pd
 from time import sleep
 from datetime import datetime
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
-
+from selenium.webdriver.common.keys import Keys
 
 
 class Movida:
@@ -21,7 +20,7 @@ class Movida:
     Durante a execução não minimizar ou fechar a janela do navegador que será aberta.
     
     O movidazerokm.com.br é um site problematico para fazer web scraping, ele gera diversas falhas durante a execução
-    e mesmo tentando contornar essas falhas, varias vezes haverá erros.
+    e mesmo tentando contornar essas falhas haverá erros.
     """
 
     def __init__(self):
@@ -42,7 +41,7 @@ class Movida:
     def pagina_inicial(self):
         """Acessa a página que contem todos os carros."""
         self.navegador.get(self.url)
-        sleep(4)
+        sleep(5)
 
 
     def get_carros(self):
@@ -62,17 +61,18 @@ class Movida:
         Returns:
             list: Lista com todas as opções de períodos.
         """
-        opcoes_meses = self.navegador.find_element(By.XPATH, '//mat-select[@id="mat-select-0"]')
         try:
+            opcoes_meses = self.navegador.find_element(By.XPATH, '//mat-select[@id="mat-select-0"]')
+            ActionChains(self.navegador).move_to_element(opcoes_meses).perform()
             opcoes_meses.click()
         except:
-            try:
-                self.navegador.execute_script('window.scrollBy(0, -200)')
-                opcoes_meses.click()
-            except:
-                self.navegador.find_element(By.XPATH, '//button[contains(text(), "OK")]').click()
-                opcoes_meses.click()
+            sleep(2)
+            ActionChains(self.navegador).send_keys(Keys.ESCAPE).perform()
+            opcoes_meses = self.navegador.find_element(By.XPATH, '//mat-select[@id="mat-select-4"]')
+            ActionChains(self.navegador).move_to_element(opcoes_meses).perform()
+            opcoes_meses.click()
         meses = self.navegador.find_elements(By.XPATH, '//*[@role="option"]')
+        sleep(.5)
         return meses
 
 
@@ -82,17 +82,18 @@ class Movida:
         Returns:
             list: Lista com todas as opções de Km.
         """
-        opcoes_km = self.navegador.find_element(By.XPATH, '//mat-select[@id="mat-select-1"]')
         try:
+            opcoes_km = self.navegador.find_element(By.XPATH, '//mat-select[@id="mat-select-1"]')
+            ActionChains(self.navegador).move_to_element(opcoes_km).perform()
             opcoes_km.click()
         except:
-            try:
-                self.navegador.execute_script('window.scrollBy(0, -200)')
-                opcoes_km.click()
-            except:
-                self.navegador.find_element(By.XPATH, '//button[contains(text(), "OK")]').click()
-                opcoes_km.click()
+            sleep(2)
+            ActionChains(self.navegador).send_keys(Keys.ESCAPE).perform()
+            opcoes_km = self.navegador.find_element(By.XPATH, '//mat-select[@id="mat-select-5"]')
+            ActionChains(self.navegador).move_to_element(opcoes_km).perform()
+            opcoes_km.click()
         kms = self.navegador.find_elements(By.XPATH, '//*[@role="option"]')
+        sleep(.5)
         return kms
 
     def fechar_chat(self):
@@ -110,7 +111,7 @@ class Movida:
     def get_data(self):
         """Realiza a coleta dos dados nas paginas dos carros."""
         self.pagina_inicial()
-        sleep(15)
+        sleep(10)
 
         self.fechar_chat()
 
@@ -120,79 +121,92 @@ class Movida:
         carros = self.get_carros()
 
         print('Coletando dados')
-        for i in range(len(carros)):
-            dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Movida Zero Km', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
-            self.fechar_chat()
+        i = 0
+        while i < len(carros):
             try:
-                # Descendo na página principal para acessar o proximo carro.
-                self.navegador.execute_script(f'window.scrollBy(0, {125*i})')
-                sleep(2)
-                car = self.navegador.find_element(By.ID, f'vehicleCard{i}')
-            except:  # Exceção para quando a pagina não carregar completamente.
-                self.navegador.refresh()
-                sleep(10)
-                self.navegador.execute_script(f'window.scrollBy(0, {125*i})')
-                sleep(2)
-                car = self.navegador.find_element(By.ID, f'vehicleCard{i}')
-
-            ActionChains(self.navegador).move_to_element(car).perform()  # Movendo mouse para o carro.
-            sleep(1)
-            car.click()
-            sleep(8)
-
-            dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//h1[@class="title-car-detail"]').text
-
-            # Descendo na página para evitar problemas de não conseguir acessar o objetivo por estar fora da tela ou com algo na frente.
-            self.navegador.execute_script('window.scrollBy(0, 1000)')
-            sleep(2)
-
-            meses = self.load_meses()  # Abrindo lista de opções de meses.
-
-            for mes in meses:
-                dados_carro['Meses'] = int(mes.text.replace('meses', ''))
-                mes.click()    # Selecionando opção de km.
-                sleep(1)
-                kms = self.load_kms()  # Abrindo lista de opções de Km e salvandoa-as.
-
-                for km in kms:
-                    print(km.text)
-                    dados_carro['Km'] = int(km.text.replace(' Km', '').replace('.', ''))
-                    km.click()  # Selecionando opção de km.
+                dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Movida Zero Km', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
+                self.fechar_chat()
+                try:
+                    # Descendo na página principal para acessar o proximo carro.
+                    self.navegador.execute_script(f'window.scrollBy(0, {125*i})')
                     sleep(2)
+                    car = self.navegador.find_element(By.ID, f'vehicleCard{i}')
+                except:  # Exceção para quando a pagina não carregar completamente.
+                    self.navegador.refresh()
+                    sleep(15)
+                    self.navegador.execute_script(f'window.scrollBy(0, {130*i})')
+                    sleep(2)
+                    car = self.navegador.find_element(By.ID, f'vehicleCard{i}')
 
-                    # Tentando coletar os dados.
+                ActionChains(self.navegador).move_to_element(car).perform()  # Movendo mouse para o carro.
+                sleep(1)
+                car.click()
+                sleep(8)
+
+                dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//h1[@class="title-car-detail"]').text
+
+                # Descendo na página para evitar problemas de não conseguir acessar o objetivo por estar fora da tela ou com algo na frente.
+                self.navegador.execute_script('window.scrollBy(0, 200)')
+                sleep(1)
+
+                meses = self.load_meses()  # Abrindo lista de opções de meses.
+
+                for mes in meses:
+                    dados_carro['Meses'] = int(mes.text.replace('meses', ''))
+                    mes.click()    # Selecionando opção de km.
+                    sleep(1)
                     try:
-                        # Formatando preço para se tornar um numero to tipo float.
-                        valor = self.navegador.find_element(By.XPATH, '//h1[@class="price-label"]').text
-                        numeros = float(valor.replace('R$ ', '').replace('.', '').replace(',', '.'))
+                        kms = self.load_kms()  # Abrindo lista de opções de Km e salvandoa-as.
                     except:
-                        # Segunda tentativa de coletar o preço caso a primeira falhe.
-                        sleep(5)
-                        valor = self.navegador.find_element(By.XPATH, '//h1[@class="price-label"]').text
-                        numeros = float(valor.replace('R$ ', '').replace('.', '').replace(',', '.'))
+                        self.navegador.refresh()
+                        sleep(8)
+                        kms = self.load_kms()
+
+                    for km in kms:
+                        dados_carro['Km'] = int(km.text.replace(' Km', '').replace('.', ''))
+                        km.click()  # Selecionando opção de km.
+                        sleep(2)
+
+                        # Tentando coletar os dados.
+                        try:
+                            # Formatando preço para se tornar um numero to tipo float.
+                            valor = self.navegador.find_element(By.XPATH, '//h1[@class="price-label"]').text
+                            numeros = float(valor.replace('R$ ', '').replace('.', '').replace(',', '.'))
+                        except:
+                            # Segunda tentativa de coletar o preço caso a primeira falhe.
+                            sleep(6)
+                            valor = self.navegador.find_element(By.XPATH, '//h1[@class="price-label"]').text
+                            numeros = float(valor.replace('R$ ', '').replace('.', '').replace(',', '.'))
+                        try:
+                            # Coletando descrição de pagamento se ela existir.
+                            desc = self.navegador.find_element(By.XPATH, '//h5[@class="price-observation"]').text
+                        except:
+                            # Caso não consiga coletar, o valor será NaN.
+                            desc = np.nan
+
+                        # Salvando dados que ainda não foram salvos.
+                        dados_carro['Valor'] = numeros
+                        dados_carro['Descricao'] = desc
+                        dados_carro['Data'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+
+                        # Guardando no dataframe.
+                        self.dataframe.loc[len(self.dataframe)] = dados_carro
+                        self.load_kms()  # Abrindo lista de opções de Km.
+
+                    kms[0].click()
                     try:
-                        # Coletando descrição de pagamento se ela existir.
-                        desc = self.navegador.find_element(By.XPATH, '//h5[@class="price-observation"]').text
+                        self.load_meses()  # Abrindo lista de opções de períodos.
                     except:
-                        # Caso não consiga coletar, o valor será NaN.
-                        desc = np.nan
-
-                    # Salvando dados que ainda não foram salvos.
-                    dados_carro['Valor'] = numeros
-                    dados_carro['Descricao'] = desc
-                    dados_carro['Data'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-
-                    # Guardando no dataframe.
-                    self.dataframe.loc[len(self.dataframe)] = dados_carro
-                    print(self.dataframe)
-                    self.load_kms()  # Abrindo lista de opções de Km.
-
-                kms[0].click()
-                self.load_meses()  # Abrindo lista de opções de períodos.
-
+                        self.navegador.refresh()
+                        sleep(8)
+                        self.load_meses()
+            except:
+                self.navegador.refresh()
+                sleep(8)
+                i -= 1
             # Voltando para a página inicial.
             self.pagina_inicial()
-            sleep(5)
+            i += 1
 
         print(f'Coleta do site {self.url} finalizada')
         self.navegador.close()
@@ -203,6 +217,3 @@ class Movida:
         """Exportando dados em um arquivo csv."""
         print('Exportando dados')
         self.dataframe.to_csv('dados_movida.csv', index=False)
-
-if __name__ == '__main__':
-    Movida()

@@ -143,7 +143,7 @@ class Movida:
                 car.click()
                 sleep(8)
 
-                dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//h1[@class="title-car-detail"]').text
+                dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//h1[@class="subtitle-car-detail"]').text
 
                 # Descendo na página para evitar problemas de não conseguir acessar o objetivo por estar fora da tela ou com algo na frente.
                 self.navegador.execute_script('window.scrollBy(0, 200)')

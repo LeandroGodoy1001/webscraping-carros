@@ -15,6 +15,7 @@ from Sites.Unidas import Unidas
 from Sites.Movida import Movida
 from multiprocessing import Process
 
+
 class WebScraping:
     """Classe principal do Web Scraping.
 

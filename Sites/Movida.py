@@ -144,7 +144,6 @@ class Movida:
                 sleep(8)
 
                 dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//p[@class="subtitle-car-detail"]').text
-                print(dados_carro['Nome'])
 
                 # Descendo na página para evitar problemas de não conseguir acessar o objetivo por estar fora da tela ou com algo na frente.
                 self.navegador.execute_script('window.scrollBy(0, 200)')
@@ -208,7 +207,6 @@ class Movida:
             # Voltando para a página inicial.
             self.pagina_inicial()
             i += 1
-            print(self.dataframe)
 
         print(f'Coleta do site {self.url} finalizada')
         self.navegador.close()

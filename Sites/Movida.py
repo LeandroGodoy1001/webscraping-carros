@@ -122,6 +122,7 @@ class Movida:
 
         print('Coletando dados')
         i = 0
+        tentativa = 0
         while i < len(carros):
             try:
                 dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Movida Zero Km', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
@@ -201,9 +202,11 @@ class Movida:
                         sleep(8)
                         self.load_meses()
             except:
-                self.navegador.refresh()
-                sleep(8)
-                i -= 1
+                if tentativa == i:
+                    pass
+                else:
+                    tentativa = i
+                    i -= 1
             # Voltando para a página inicial.
             self.pagina_inicial()
             i += 1
@@ -217,3 +220,6 @@ class Movida:
         """Exportando dados em um arquivo csv."""
         print('Exportando dados')
         self.dataframe.to_csv('dados_movida.csv', index=False)
+
+if __name__ == '__main__':
+    Movida()

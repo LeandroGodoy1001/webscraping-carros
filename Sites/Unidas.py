@@ -43,17 +43,20 @@ class Unidas:
 
     def load_all(self):
         """Carrega todos os carros disponíveis na página."""
-        for i in range(3):
-            # Procurando botão de ver mais.
-            bnt = self.navegador.find_elements(By.XPATH, '//*[contains(text(), "Ver mais")]')[-1]
-            # Descendo até ele.
-            ActionChains(self.navegador).move_to_element(bnt).perform()
-            # Descendo um pouco mais para a mensagem de cookies não ficar na frente.
-            self.navegador.execute_script('window.scrollBy(0, 200)')
-            sleep(1)
-            # Clicando no botão.
-            bnt.click()
-            sleep(2)
+        while True:
+            try:
+                # Procurando botão de ver mais.
+                bnt = self.navegador.find_elements(By.XPATH, '//*[contains(text(), "Ver mais")]')[-1]
+                # Descendo até ele.
+                ActionChains(self.navegador).move_to_element(bnt).perform()
+                # Descendo um pouco mais para a mensagem de cookies não ficar na frente.
+                self.navegador.execute_script('window.scrollBy(0, 200)')
+                sleep(1)
+                # Clicando no botão.
+                bnt.click()
+                sleep(2)
+            except:
+                break
 
 
     def get_links(self):
@@ -84,7 +87,7 @@ class Unidas:
 
         print('Coletando dados...')
 
-        for carro in range(13, tamanho):
+        for carro in range(tamanho):
             try:
                 dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Unidas', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
                 # self.navegador.get(carro)  # Acessando carro.
@@ -130,7 +133,6 @@ class Unidas:
                 sleep(3)
 
             except Exception as e:
-                print(e)
                 self.navegador.get(self.url)
                 sleep(3)
 
@@ -145,3 +147,6 @@ class Unidas:
         """Exportando dados em um arquivo csv."""
         print('Exportando dados')
         self.dataframe.to_csv('dados_unidas.csv', index=False)
+
+if __name__ == '__main__':
+    Unidas()

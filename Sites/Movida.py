@@ -120,7 +120,7 @@ class Movida:
 
         carros = self.get_carros()
 
-        print('Coletando dados')
+        print('Coletando dados...')
         i = 0
         tentativa = 0
         while i < len(carros):

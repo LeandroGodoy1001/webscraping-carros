@@ -116,3 +116,6 @@ class Porto:
         """Exportando dados em um arquivo csv."""
         print('Exportando dados')
         self.dataframe.to_csv('dados_porto.csv', index=False)
+
+if __name__ == '__main__':
+    porto = Porto()

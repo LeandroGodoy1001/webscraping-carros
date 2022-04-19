@@ -68,49 +68,52 @@ class Flua:
             carros =  self.navegador.find_elements(By.XPATH, '//*[contains(text(), "EU QUERO ESTE")]')
             print(f'Foram encontrados {len(carros)} carros em {end}')
 
-            print('Coletando dados')
+            print('Coletando dados...')
             for car in carros:
-                ActionChains(self.navegador).move_to_element(car).perform()  # Move o mouse para o carro.
-                sleep(.5)
-                car.click()
-                sleep(1)
-                # Procurando botão para voltar para a página anterior.
-                bnt_voltar =  self.navegador.find_element(By.XPATH, '//*[contains(text(), "Voltar")]')
-
-                dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Flua', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
-
-                dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//div[@class="offer-header no-label"]/h3').text
-
-                # Pegando opçoes de periodo
-                meses = self.navegador.find_elements(By.CLASS_NAME, 'monthly-plans__item')
-                for mes in meses:
-                    mes.click()
+                try:
+                    ActionChains(self.navegador).move_to_element(car).perform()  # Move o mouse para o carro.
+                    sleep(.5)
+                    car.click()
                     sleep(1)
-                    dados_carro['Meses'] = int(mes.text.split('\n')[0])
+                    # Procurando botão para voltar para a página anterior.
+                    bnt_voltar =  self.navegador.find_element(By.XPATH, '//*[contains(text(), "Voltar")]')
 
-                    # Pegando slider de seleção de Km
-                    slider = self.navegador.find_element(By.XPATH, '//input[@type="range"]')
-                    kms = self.navegador.find_element(By.CLASS_NAME, 'hub-input-range')
+                    dados_carro = {'Nome':np.nan, 'Data':np.nan, 'Locadora':'Flua', 'Km':np.nan, 'Meses':np.nan, 'Valor':np.nan, 'Descricao':np.nan}
 
-                    # Colocando slider na primeira posição.
-                    for i in range(5):
-                        slider.send_keys(Keys.LEFT)
+                    dados_carro['Nome'] = self.navegador.find_element(By.XPATH, '//div[@class="offer-header no-label"]/h3').text
 
-                    for km in kms.text.split('\n'):
-                        dados_carro['Km'] = int(km.replace(' Km', ''))
-
-                        # Formatando preço para se tornar um numero to tipo float.
-                        preco = self.navegador.find_element(By.XPATH, '//div[@class="offer-info__price"]/h3').text
-                        numeros = float(preco.replace('R$', '').replace('.', '').replace(',', '.'))
-                        dados_carro['Valor'] = numeros
-
-                        # Salvando data da coleta e todos os outros dados.
-                        dados_carro['Data'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-                        self.dataframe.loc[len(self.dataframe)] = dados_carro
-
-                        # Deslizando slider para a proxima posição.
-                        slider.send_keys(Keys.RIGHT)
+                    # Pegando opçoes de periodo
+                    meses = self.navegador.find_elements(By.CLASS_NAME, 'monthly-plans__item')
+                    for mes in meses:
+                        mes.click()
                         sleep(1)
+                        dados_carro['Meses'] = int(mes.text.split('\n')[0])
+
+                        # Pegando slider de seleção de Km
+                        slider = self.navegador.find_element(By.XPATH, '//input[@type="range"]')
+                        kms = self.navegador.find_element(By.CLASS_NAME, 'hub-input-range')
+
+                        # Colocando slider na primeira posição.
+                        for i in range(5):
+                            slider.send_keys(Keys.LEFT)
+
+                        for km in kms.text.split('\n'):
+                            dados_carro['Km'] = int(km.replace(' Km', ''))
+
+                            # Formatando preço para se tornar um numero to tipo float.
+                            preco = self.navegador.find_element(By.XPATH, '//div[@class="offer-info__price"]/h3').text
+                            numeros = float(preco.replace('R$', '').replace('.', '').replace(',', '.'))
+                            dados_carro['Valor'] = numeros
+
+                            # Salvando data da coleta e todos os outros dados.
+                            dados_carro['Data'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+                            self.dataframe.loc[len(self.dataframe)] = dados_carro
+
+                            # Deslizando slider para a proxima posição.
+                            slider.send_keys(Keys.RIGHT)
+                            sleep(1)
+                except:
+                    pass
 
                 # Voltando para a pagina dos carros.
                 bnt_voltar.click()
@@ -125,3 +128,6 @@ class Flua:
         """Exportando dados em um arquivo csv."""
         print('Exportando dados')
         self.dataframe.to_csv('dados_flua.csv', index=False)
+
+if __name__ == "__main__":
+    Flua()
